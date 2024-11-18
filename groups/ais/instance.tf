@@ -18,60 +18,57 @@ resource "aws_security_group" "common" {
   })
 }
 
-resource "aws_security_group_rule" "ingress_ci_deployments" {
-  type              = "ingress"
-  description       = "Allow inbound SSH connectivity for CI application deployments"
+resource "aws_vpc_security_group_ingress_rule" "admin_ingress" {
+  security_group_id = aws_security_group.common.id
+  description       = "Allow SSH connectivity for application deployments"
+  prefix_list_id    = data.aws_ec2_managed_prefix_list.shared_services_management.id
   from_port         = 22
   to_port           = 22
-  protocol          = "TCP"
-  prefix_list_ids   = [data.aws_ec2_managed_prefix_list.shared_services_management.id]
-  security_group_id = aws_security_group.common.id
+  ip_protocol       = "tcp"
 }
 
-resource "aws_security_group_rule" "ingress_chiris_to_informix" {
+resource "aws_vpc_security_group_ingress_rule" "ingress_chiris_to_informix" {
   for_each = toset(local.chiris_desktop_service_cidrs)
 
-  type              = "ingress"
+  security_group_id = aws_security_group.common.id
   description       = "Allow inbound connectivity from CHIRIS desktop service to AIS Informix databases"
+  cidr_ipv4         = each.value
   from_port         = 6278
   to_port           = 6278
-  protocol          = "TCP"
-  cidr_blocks       = [each.value]
-  security_group_id = aws_security_group.common.id
+  ip_protocol       = "tcp"
 }
 
-resource "aws_security_group_rule" "ingress_ois_to_ais_services" {
-  for_each = var.tuxedo_services
+resource "aws_vpc_security_group_ingress_rule" "ingress_ois_to_ais_services" {
+  for_each = {
+    for rule in local.ais_security_group_rules : "${rule.service}-${rule.port}-${rule.cidr_ipv4}" => rule
+  }
 
-  type              = "ingress"
-  description       = "Allow inbound connectivity from OIS Tuxedo services to ${upper(each.key)} Tuxedo services"
-  from_port         = each.value
-  to_port           = each.value
-  protocol          = "TCP"
-  cidr_blocks       = data.aws_subnet.application[*].cidr_block
   security_group_id = aws_security_group.common.id
+  description       = "Allow inbound connectivity from OIS Tuxedo services to ${upper(each.value.service)} Tuxedo services"
+  cidr_ipv4         = each.value.cidr_ipv4
+  from_port         = each.value.port
+  to_port           = each.value.port
+  ip_protocol       = "tcp"
 }
 
-resource "aws_security_group_rule" "ingress_informix_hdr" {
-  for_each = var.informix_services
+resource "aws_vpc_security_group_ingress_rule" "informix_ingress" {
+  for_each = {
+    for rule in local.informix_hdr_security_group_rules : "${rule.service}-${rule.port}-${rule.cidr_ipv4}" => rule
+  }
 
-  type              = "ingress"
-  description       = "Allow inbound connectivity from ${upper(each.key)} Informix databases to ${upper(each.key)} Informix databases for cross-instance HDR functionality"
-  from_port         = each.value
-  to_port           = each.value
-  protocol          = "TCP"
-  cidr_blocks       = data.aws_subnet.application[*].cidr_block
   security_group_id = aws_security_group.common.id
+  description       = "Allow Informix HDR connectivity for Tuxedo ${upper(each.value.service)} services"
+  cidr_ipv4         = each.value.cidr_ipv4
+  from_port         = each.value.port
+  to_port           = each.value.port
+  ip_protocol       = "tcp"
 }
 
-resource "aws_security_group_rule" "egress_all" {
-  type              = "egress"
+resource "aws_vpc_security_group_egress_rule" "all_egress" {
+  security_group_id = aws_security_group.common.id
   description       = "Allow all outbound traffic"
-  from_port         = 0
-  to_port           = 0
-  protocol          = "-1"
-  cidr_blocks       = ["0.0.0.0/0"]
-  security_group_id = aws_security_group.common.id
+  cidr_ipv4         = "0.0.0.0/0"
+  ip_protocol       = "-1"
 }
 
 resource "aws_instance" "ais" {
