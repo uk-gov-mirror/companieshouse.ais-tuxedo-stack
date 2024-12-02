@@ -70,6 +70,55 @@
   when: server_operation_script.stat.exists
   changed_when: true
 
+- name: "Check state of file retrieval client service : {{ tuxedo_service }}" # noqa ignore-errors
+  ansible.builtin.command: "pgrep -f file_retrieval"
+  ignore_errors: true
+  register: file_retrieval
+  changed_when: false
+
+- name: "Stop file retrieval client service : {{ tuxedo_service }}"
+  ansible.builtin.command: "kill {{ file_retrieval.stdout_lines.0 }}"
+  when: file_retrieval.rc == 0 and file_retrieval.stdout_lines | length > 0
+  changed_when: true
+
+- name: "Check state of message transfer service : {{ tuxedo_service }}" # noqa ignore-errors
+  ansible.builtin.command: "pgrep -f message_transfer"
+  ignore_errors: true
+  register: message_transfer
+  changed_when: false
+
+- name: "Stop message transfer service : {{ tuxedo_service }}"
+  ansible.builtin.command: "kill {{ message_transfer.stdout_lines.0 }}"
+  when: message_transfer.rc == 0 and message_transfer.stdout_lines | length > 0
+  changed_when: true
+
+- name: "Wait for file retrieval client and message transfer services to stop : {{ tuxedo_service }}"
+  wait_for:
+    path: "/proc/{{ item }}/status"
+    state: absent
+    timeout: 30
+  loop:
+    - "{{ file_retrieval.stdout_lines.0 }}"
+    - "{{ message_transfer.stdout_lines.0 }}"
+  when:
+    - file_retrieval.rc == 0 and file_retrieval.stdout_lines | length > 0
+    - message_transfer.rc == 0 and message_transfer.stdout_lines | length > 0
+  register: stopped_services
+
+- name: "Check for stalled service processes : {{ tuxedo_service }}"
+  ansible.builtin.set_fact:
+    stalled_services: "{{ stopped_services.results | select('failed') | map(attribute='item') | list }}"
+  when:
+    - file_retrieval.rc == 0 and file_retrieval.stdout_lines | length > 0
+    - message_transfer.rc == 0 and message_transfer.stdout_lines | length > 0
+
+- name: "Forcefully stop stalled service processes : {{ tuxedo_service }}"
+  ansible.builtin.command: "kill -9 {{ item }}"
+  loop: "{{ stalled_services }}"
+  when:
+    - file_retrieval.rc == 0 and file_retrieval.stdout_lines | length > 0
+    - message_transfer.rc == 0 and message_transfer.stdout_lines | length > 0
+
 - name: "Stop Tuxedo services : {{ tuxedo_service }}" # noqa ignore-errors
   become: true
   become_user: "{{ tuxedo_service }}"
@@ -205,10 +254,26 @@
     executable: /bin/bash
   changed_when: true
 
-- name: "Start document synchronisation servers, cache servers, archive servers, and database servers: {{ tuxedo_service }}"  # noqa ignore-errors
+- name: "Start document synchronisation servers, cache servers, archive servers, and database servers : {{ tuxedo_service }}"  # noqa ignore-errors
   become: true
   become_user: "{{ tuxedo_service }}"
   ansible.builtin.shell: "source {{ tuxedo_env_file_path }} && {{ server_operation_script_path }} start"
+  args:
+    executable: /bin/bash
+  changed_when: true
+
+- name: "Start file retrieval client service : {{ tuxedo_service }}"
+  become: true
+  become_user: "{{ tuxedo_service }}"
+  ansible.builtin.shell: "source /ais/ais.profile && /ais/tools/proman/boot_file_ret"
+  args:
+    executable: /bin/bash
+  changed_when: true
+
+- name: "Start message transfer service : {{ tuxedo_service }}"
+  become: true
+  become_user: "{{ tuxedo_service }}"
+  ansible.builtin.shell: "source /ais/ais.profile && /ais/tools/proman/boot_msg_trans"
   args:
     executable: /bin/bash
   changed_when: true
