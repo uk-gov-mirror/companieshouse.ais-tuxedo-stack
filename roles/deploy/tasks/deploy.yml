@@ -112,7 +112,7 @@
     state: absent
     timeout: 30
   ignore_errors: true
-  loop: "{{ stopped_service_pids }}"
+  loop: "{{ stopped_service_pids | default([]) }}"
   register: stopped_services
 
 - name: "Check for stalled service processes : {{ tuxedo_service }}"
