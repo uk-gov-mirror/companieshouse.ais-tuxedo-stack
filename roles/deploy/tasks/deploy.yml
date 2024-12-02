@@ -93,7 +93,7 @@
   changed_when: true
 
 - name: "Wait for file retrieval client and message transfer services to stop : {{ tuxedo_service }}"
-  wait_for:
+  ansible.builtin.wait_for:
     path: "/proc/{{ item }}/status"
     state: absent
     timeout: 30
@@ -118,6 +118,7 @@
   when:
     - file_retrieval.rc == 0 and file_retrieval.stdout_lines | length > 0
     - message_transfer.rc == 0 and message_transfer.stdout_lines | length > 0
+  changed_when: true
 
 - name: "Stop Tuxedo services : {{ tuxedo_service }}" # noqa ignore-errors
   become: true
