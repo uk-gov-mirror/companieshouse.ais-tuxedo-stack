@@ -1,0 +1,78 @@
+---
+
+ais_logs_path: /ais/logs
+
+cloudwatch_agent_defaults:
+  path: /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl
+  config_dir: /opt/aws/amazon-cloudwatch-agent/etc
+  log_file: /opt/aws/amazon-cloudwatch-agent/logs/amazon-cloudwatch-agent.log
+  metrics_collection_interval: 60
+  metrics_enabled: false
+  user: cwagent
+
+getent_gid_index: 2
+getent_uid_index: 1
+
+postfix_config_path: /etc/postfix/main.cf
+
+postfix_config:
+  mydomain: companieshouse.gov.uk
+  myorigin: $mydomain
+  relayhost: smtp-outbound.sharedservices.aws.internal
+  inet_interfaces: all
+  inet_protocols: ipv4
+
+server_operation_script_path: /ais/sysadm/ch.server
+
+tuxedo_log_rotation_config_path: /etc/logrotate.tuxedo.conf
+tuxedo_logs_path: /var/log/tuxedo
+tuxedo_service_group: tuxedo
+
+tuxedo_service_domain_port_start: 38000
+tuxedo_service_domain_port_increment: 100
+
+tuxedo_service_ipc_key_start: 48000
+tuxedo_service_ipc_key_increment: 100
+
+tuxedo_queue_space_ipc_key_start: 58000
+tuxedo_queue_space_ipc_key_increment: 100
+
+tuxedo_service_config:
+  ais:
+    ipc_key: "{{ tuxedo_service_ipc_key_start + (0 * tuxedo_service_ipc_key_increment) | int }}"
+    local_domain_port: "{{ tuxedo_service_domain_port_start + (0 * tuxedo_service_domain_port_increment) | int }}"
+    informix_server_name: ais
+    tuxedo_env_file: /ais/config/envfile
+    tuxedo_config_dir: /ais/config
+    tuxedo_log_size: 200
+    tuxedo_queue_path: /ais/import/TuxedoQueues
+    queue_space_ipc_key: "{{ tuxedo_queue_space_ipc_key_start + (0 * tuxedo_queue_space_ipc_key_increment) | int }}"
+    queue_space_2_ipc_key: "{{ tuxedo_queue_space_ipc_key_start + (1 * tuxedo_queue_space_ipc_key_increment) | int }}"
+    queue_space_3_ipc_key: "{{ tuxedo_queue_space_ipc_key_start + (2 * tuxedo_queue_space_ipc_key_increment) | int }}"
+    queue_space_4_ipc_key: "{{ tuxedo_queue_space_ipc_key_start + (3 * tuxedo_queue_space_ipc_key_increment) | int }}"
+    queue_space_5_ipc_key: "{{ tuxedo_queue_space_ipc_key_start + (4 * tuxedo_queue_space_ipc_key_increment) | int }}"
+
+tuxedo_log_files:
+  ais:
+    - file_pattern: "{{ ais_logs_path }}/audlog"
+      cloudwatch_log_group_name: ais-tuxedo-ais-audlog
+    - file_pattern: "{{ ais_logs_path }}/debug/BSSlog"
+      cloudwatch_log_group_name: ais-tuxedo-ais-bsslog
+    - file_pattern: "{{ ais_logs_path }}/testing/doc_retrieval"
+      cloudwatch_log_group_name: ais-tuxedo-ais-doc-retrieval
+    - file_pattern: "{{ tuxedo_logs_path }}/tuxedo/domain.log"
+      cloudwatch_log_group_name: ais-tuxedo-ais-domain
+    - file_pattern: "{{ tuxedo_logs_path }}/domaudit.log"
+      cloudwatch_log_group_name: ais-tuxedo-ais-domaudit
+    - file_pattern: "{{ ais_logs_path }}/errlog"
+      cloudwatch_log_group_name: ais-tuxedo-ais-errlog
+    - file_pattern: "{{ ais_logs_path }}/testing/file_ret_client"
+      cloudwatch_log_group_name: ais-tuxedo-ais-file-ret-client
+    - file_pattern: "{{ ais_logs_path }}/output_debug_email"
+      cloudwatch_log_group_name: ais-tuxedo-ais-output-debug-email
+    - file_pattern: "{{ ais_logs_path }}/output_debug_online"
+      cloudwatch_log_group_name: ais-tuxedo-ais-output-debug-online
+    - file_pattern: "{{ ais_logs_path }}/syslog"
+      cloudwatch_log_group_name: ais-tuxedo-ais-syslog
+    - file_pattern: "{{ tuxedo_logs_path }}/ULOG*"
+      cloudwatch_log_group_name: ais-tuxedo-ais-ulog

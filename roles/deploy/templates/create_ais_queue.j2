@@ -1,0 +1,183 @@
+#!/bin/bash
+
+tmadmin <<EOF
+crdl -b 1000 -z {{ tuxedo_queue_path }}/TLOG
+crdl -b 60000 -z {{ tuxedo_queue_path }}/QTLOG
+crlog -m {{ tuxedo_logical_machine_id }}
+EOF
+
+qmadmin <<EOF
+qspacecreate
+QSPACE1
+{{ tuxedo_service_config[tuxedo_service].queue_space_ipc_key }}
+11000
+4
+8
+12
+10300
+ERRORQ
+y
+16
+qopen QSPACE1
+qcreate
+OUTPUT_REPORT
+fifo
+none
+10
+60
+90%
+10%
+logger -i -p local0.crit -t QSPACE1 "OUTPUT_REPORT /Q is approaching capacity"
+qcreate
+ERRORQ
+fifo
+none
+10
+60
+90%
+10%
+logger -i -p local0.crit -t QSPACE1 "ERRORQ /Q is approaching capacity"
+qclose
+qspacecreate
+QSPACE2
+{{ tuxedo_service_config[tuxedo_service].queue_space_2_ipc_key }}
+11000
+4
+10
+12
+10300
+ERRORQ
+y
+16
+qopen QSPACE2
+qcreate
+AIS_RESULTS
+fifo
+none
+10
+60
+90%
+10%
+logger -i -p local0.crit -t QSPACE2 "AIS_RESULTS /Q is approaching capacity"
+qcreate
+ERRORQ
+fifo
+none
+10
+60
+90%
+10%
+logger -i -p local0.crit -t QSPACE2 "ERRORQ /Q is approaching capacity"
+qclose
+qspacecreate
+QSPACE3
+{{ tuxedo_service_config[tuxedo_service].queue_space_3_ipc_key }}
+11000
+6
+8
+12
+10000
+ERRORQ
+y
+16
+qopen QSPACE3
+qcreate
+RIPCONTEXT_Q
+fifo
+none
+10
+60
+90%
+10%
+logger -i -p local0.crit -t QSPACE3 "RIPCONTEXT_Q /Q is approaching capacity"
+qcreate
+ERRORQ
+fifo
+none
+10
+60
+90%
+10%
+logger -i -p local0.crit -t QSPACE3 "ERRORQ /Q is approaching capacity"
+qclose
+qspacecreate
+QSPACE4
+{{ tuxedo_service_config[tuxedo_service].queue_space_4_ipc_key }}
+11000
+6
+8
+12
+10000
+ERRORQ
+y
+16
+qopen QSPACE4
+qcreate
+IPC_Q
+fifo
+none
+10
+60
+90%
+10%
+logger -i -p local0.crit -t QSPACE4 "IPC_Q /Q is approaching capacity"
+qcreate
+ERRORQ
+fifo
+none
+10
+60
+90%
+10%
+logger -i -p local0.crit -t QSPACE4 "ERRORQ /Q is approaching capacity"
+qclose
+qspacecreate
+QSPACE5
+{{ tuxedo_service_config[tuxedo_service].queue_space_5_ipc_key }}
+11000
+6
+4
+10
+10000
+ERRORQ
+y
+16
+qopen QSPACE5
+qcreate
+PRINT
+fifo
+none
+10
+60
+90%
+10%
+logger -i -p local0.crit -t QSPACE5 "PRINT /Q is approaching capacity"
+qcreate
+ONLINE
+fifo
+none
+10
+60
+90%
+10%
+logger -i -p local0.crit -t QSPACE5 "ONLINE /Q is approaching capacity"
+qcreate
+FAX
+fifo
+none
+10
+60
+90%
+10%
+logger -i -p local0.crit -t QSPACE5 "FAX /Q is approaching capacity"
+qcreate
+EMAIL
+fifo
+none
+10
+60
+90%
+10%
+logger -i -p local0.crit -t QSPACE5 "EMAIL /Q is approaching capacity"
+qclose
+EOF

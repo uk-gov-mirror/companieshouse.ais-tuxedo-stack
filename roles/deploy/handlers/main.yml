@@ -1,0 +1,13 @@
+---
+
+- name: Restart Postfix service
+  ansible.builtin.systemd:
+    name: postfix
+    state: restarted
+    enabled: true
+
+- name: Restart systemd-journald service
+  ansible.builtin.systemd:
+    name: systemd-journald
+    state: restarted
+    enabled: true

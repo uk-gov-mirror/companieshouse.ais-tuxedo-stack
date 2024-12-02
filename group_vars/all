@@ -1,14 +1,18 @@
 ---
 
+informix_logs_path: /var/log/informix
+
 iscsi_devices_config:
   - alias: db_dump
+    multipath: true
     filesystem:
       type: xfs
       path: /db_dump
-      mode: "770"
+      mode: '770'
       owner: informix
       group: informix
   - alias: ais
+    multipath: true
     raw_character_device:
       path: /dev/raw/raw1
       owner: informix
