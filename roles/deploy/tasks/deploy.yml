@@ -146,6 +146,12 @@
   when: tuxedo_shutdown.rc != 0
   changed_when: true
 
+- name: "Deploy and extract application artefact : {{ tuxedo_service }}"
+  ansible.builtin.unarchive:
+    src: "{{ application_artifact_path }}"
+    dest: "/image/ais"
+    remote_src: false
+
 - name: "Lint Tuxedo ubbconfig file after variable population : {{ tuxedo_service }}"
   become: true
   become_user: "{{ tuxedo_service }}"
