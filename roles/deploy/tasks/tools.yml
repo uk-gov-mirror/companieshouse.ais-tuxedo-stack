@@ -5,6 +5,7 @@
     state: present
     name:
       - ftp
+      - ksh
       - mailx
 
 - name: Disable mailx inbuilt SMTP relay
