@@ -1,0 +1,222 @@
+---
+
+- name: "Set additional variables for template population : {{ tuxedo_service }}"
+  ansible.builtin.set_fact:
+    private_host_address: "{{ inventory_hostname }}"
+    private_host_local_domain_port: "{{ tuxedo_service_config[tuxedo_service].local_domain_port }}"
+    service_name: "{{ tuxedo_service }}"
+    tuxedo_config_dir: "{{ tuxedo_service_config[tuxedo_service].tuxedo_config_dir }}"
+    informix_server_name: "{{ tuxedo_service_config[tuxedo_service].informix_server_name | default('') }}"
+    tuxedo_env_file_path: "{{ tuxedo_service_config[tuxedo_service].tuxedo_env_file }}"
+    tuxedo_domain_id: "{{ tuxedo_service | upper }}_{{ tuxedo_domain_id_suffix }}"
+    tuxedo_group_id: "{{ getent_passwd[tuxedo_service][getent_gid_index] }}"
+    tuxedo_ipc_key: "{{ tuxedo_service_config[tuxedo_service].ipc_key }}"
+    tuxedo_local_domain_id: "{{ tuxedo_service | upper }}_{{ tuxedo_local_domain_suffix }}"
+    tuxedo_logical_machine_id: "{{ tuxedo_service | upper }}_{{ tuxedo_logical_machine_id_suffix }}"
+    tuxedo_machine_name: "{{ ansible_facts.hostname }}"
+    tuxedo_user_id: "{{ getent_passwd[tuxedo_service][getent_uid_index] }}"
+    tuxedo_queue_path: "{{ tuxedo_service_config[tuxedo_service].tuxedo_queue_path }}"
+    tuxedo_log_size: "{{ tuxedo_service_config[tuxedo_service].tuxedo_log_size }}"
+  no_log: true
+
+- name: "Create Tuxedo service logs directory : {{ tuxedo_service }}"
+  ansible.builtin.file:
+    path: "{{ tuxedo_logs_path }}/{{ tuxedo_service }}"
+    owner: "{{ tuxedo_service }}"
+    group: "{{ tuxedo_service }}"
+    mode: '0755'
+    state: directory
+
+- name: "Create config directory : {{ tuxedo_service }}"
+  ansible.builtin.file:
+    path: "{{ tuxedo_config_dir }}"
+    owner: "{{ tuxedo_service }}"
+    group: "{{ tuxedo_service }}"
+    mode: '0755'
+    state: directory
+
+- name: "Populate Tuxedo template config files : {{ tuxedo_service }}"
+  ansible.builtin.template:
+    src: "{{ item }}"
+    dest: "{{ tuxedo_config_dir }}/{{ item | basename | replace('.j2', '') }}"
+    owner: "{{ tuxedo_service }}"
+    group: "{{ tuxedo_service }}"
+    mode: '0644'
+  with_fileglob:
+    - "{{ application_configs_path }}/{{ tuxedo_service }}/*.j2"
+  no_log: true
+
+- name: "Stop Tuxedo domain group : {{ tuxedo_service }}" # noqa ignore-errors
+  become: true
+  become_user: "{{ tuxedo_service }}"
+  ansible.builtin.shell: "source {{ tuxedo_env_file_path }} && timeout -s 9 20 tmshutdown -g DOMGRP"
+  args:
+    executable: /bin/bash
+  ignore_errors: true
+  changed_when: true
+
+- name: "Check state of server operation script : {{ tuxedo_service }}"
+  ansible.builtin.stat:
+    path: "{{ server_operation_script_path }}"
+  register: server_operation_script
+
+- name: "Stop document synchronisation servers, cache servers, archive servers, and database servers: {{ tuxedo_service }}"  # noqa ignore-errors
+  become: true
+  become_user: "{{ tuxedo_service }}"
+  ansible.builtin.shell: "source {{ tuxedo_env_file_path }} && {{ server_operation_script_path }} stop"
+  args:
+    executable: /bin/bash
+  ignore_errors: true
+  when: server_operation_script.stat.exists
+  changed_when: true
+
+- name: "Stop Tuxedo services : {{ tuxedo_service }}" # noqa ignore-errors
+  become: true
+  become_user: "{{ tuxedo_service }}"
+  ansible.builtin.shell: "source {{ tuxedo_env_file_path }} && timeout -s 9 20 tmshutdown -y"
+  args:
+    executable: /bin/bash
+  ignore_errors: true
+  register: tuxedo_shutdown
+  changed_when: true
+
+- name: "Clear IPC facilities : {{ tuxedo_service }}" # noqa ignore-errors
+  become: true
+  become_user: "{{ tuxedo_service }}"
+  ansible.builtin.shell: "source {{ tuxedo_env_file_path }} && tmipcrm -y"
+  args:
+    executable: /bin/bash
+  ignore_errors: true
+  when: tuxedo_shutdown.rc != 0
+  changed_when: true
+
+- name: "Lint Tuxedo ubbconfig file after variable population : {{ tuxedo_service }}"
+  become: true
+  become_user: "{{ tuxedo_service }}"
+  ansible.builtin.shell: "source {{ tuxedo_env_file_path }} && tmloadcf -n ubbconfig"
+  args:
+    chdir: "{{ tuxedo_config_dir }}"
+    executable: /bin/bash
+  register: ubbconfig_lint
+  changed_when: false
+
+- name: "Assert Tuxedo ubbconfig lint success : {{ tuxedo_service }}"
+  ansible.builtin.assert:
+    that:
+      - ubbconfig_lint.rc == 0
+    fail_msg: "Tuxedo ubbconfig file failed lint check"
+    success_msg: "Tuxedo ubbconfig file passed lint check"
+
+- name: "Generate Tuxedo binary tuxconfig file : {{ tuxedo_service }}"
+  become: true
+  become_user: "{{ tuxedo_service }}"
+  ansible.builtin.shell: "source {{ tuxedo_env_file_path }} && tmloadcf -y ubbconfig"
+  args:
+    chdir: "{{ tuxedo_config_dir }}"
+    executable: /bin/bash
+  changed_when: true
+
+- name: "Lint Tuxedo dmconfig file after variable population : {{ tuxedo_service }}"
+  become: true
+  become_user: "{{ tuxedo_service }}"
+  ansible.builtin.shell: "source {{ tuxedo_env_file_path }} && dmloadcf -n dmconfig"
+  args:
+    chdir: "{{ tuxedo_config_dir }}"
+    executable: /bin/bash
+  register: dmconfig_lint
+  changed_when: false
+
+- name: "Assert Tuxedo dmconfig lint success : {{ tuxedo_service }}"
+  ansible.builtin.assert:
+    that:
+      - dmconfig_lint.rc == 0
+    fail_msg: "Tuxedo dmconfig file failed lint check"
+    success_msg: "Tuxedo dmconfig file passed lint check"
+
+- name: "Generate Tuxedo binary bdmconfig file : {{ tuxedo_service }}"
+  become: true
+  become_user: "{{ tuxedo_service }}"
+  ansible.builtin.shell: "source {{ tuxedo_env_file_path }} && dmloadcf -y dmconfig"
+  args:
+    chdir: "{{ tuxedo_config_dir }}"
+    executable: /bin/bash
+  changed_when: true
+
+- name: "Create CloudWatch agent configuration file for Tuxedo service group : {{ tuxedo_service }}"
+  ansible.builtin.template:
+    src: templates/cloudwatch-config-service.json.j2
+    dest: "{{ cloudwatch_agent.config_dir }}/cloudwatch-config-{{ tuxedo_service }}.json"
+    owner: cwagent
+    group: cwagent
+    mode: '0644'
+    trim_blocks: false
+
+- name: "Check state of queues : {{ tuxedo_service }}"
+  ansible.builtin.find:
+    paths: "{{ tuxedo_queue_path }}"
+  register: queues
+
+- name: "Create queues directory : {{ tuxedo_service }}"
+  ansible.builtin.file:
+    path: "{{ tuxedo_queue_path }}"
+    state: directory
+    mode: '0755'
+    owner: "{{ tuxedo_service }}"
+    group: "{{ tuxedo_service }}"
+
+- name: "Deploy queue creation script : {{ tuxedo_service }}"
+  ansible.builtin.template:
+    src: "create_{{ tuxedo_service }}_queue.j2"
+    dest: "/home/{{ tuxedo_service }}/create_{{ tuxedo_service }}_queue"
+    owner: "{{ tuxedo_service }}"
+    group: "{{ tuxedo_service }}"
+    mode: '0777'
+  when: queues.matched == 0
+
+- name: "Create universal device entry, queue space, and queues : {{ tuxedo_service }}"
+  become: true
+  become_user: "{{ tuxedo_service }}"
+  ansible.builtin.shell: "source {{ tuxedo_env_file_path }} && ./create_{{ tuxedo_service }}_queue"
+  args:
+    chdir: "/home/{{ tuxedo_service }}"
+    executable: /bin/bash
+  when: queues.matched == 0
+  changed_when: true
+
+- name: "Remove queue creation script : {{ tuxedo_service }}"
+  ansible.builtin.file:
+    path: "/home/{{ tuxedo_service }}/create_{{ tuxedo_service }}_queue"
+    state: absent
+  when: queues.matched == 0
+
+- name: "Start Tuxedo services : {{ tuxedo_service }}"
+  become: true
+  become_user: "{{ tuxedo_service }}"
+  ansible.builtin.shell: "source {{ tuxedo_env_file_path }} && tmboot -y"
+  args:
+    executable: /bin/bash
+  changed_when: true
+
+- name: "Stop Tuxedo domain group : {{ tuxedo_service }}" # noqa ignore-errors
+  become: true
+  become_user: "{{ tuxedo_service }}"
+  ansible.builtin.shell: "source {{ tuxedo_env_file_path }} && timeout -s 9 20 tmshutdown -g DOMGRP"
+  args:
+    executable: /bin/bash
+  changed_when: true
+
+- name: "Start document synchronisation servers, cache servers, archive servers, and database servers: {{ tuxedo_service }}"  # noqa ignore-errors
+  become: true
+  become_user: "{{ tuxedo_service }}"
+  ansible.builtin.shell: "source {{ tuxedo_env_file_path }} && {{ server_operation_script_path }} start"
+  args:
+    executable: /bin/bash
+  changed_when: true
+
+- name: "Start Tuxedo domain group : {{ tuxedo_service }}" # noqa ignore-errors
+  become: true
+  become_user: "{{ tuxedo_service }}"
+  ansible.builtin.shell: "source {{ tuxedo_env_file_path }} && timeout -s 9 20 tmboot -g DOMGRP"
+  args:
+    executable: /bin/bash
+  changed_when: true

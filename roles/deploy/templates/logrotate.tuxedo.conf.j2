@@ -1,0 +1,28 @@
+{{ tuxedo_logs_path }}/*/*.log {{ informix_logs_path }}/*/*.log {{ informix_logs_path }}/*/*.con {
+  daily
+  copytruncate
+  compress
+  maxage 7
+  maxsize 1G
+  missingok
+  notifempty
+  olddir old
+  rotate 20
+  createolddir 0755 root root
+}
+
+{{ tuxedo_logs_path }}/*/ULOG.* {
+  daily
+  copytruncate
+  compress
+  maxsize 1800M
+  missingok
+  notifempty
+  olddir old
+  rotate 20
+  createolddir 0755 root root
+  lastaction
+    /bin/find {{ tuxedo_logs_path }} -name 'ULOG*.gz' -mtime +93 -exec rm -f {} \;
+    /bin/find {{ tuxedo_logs_path }} -maxdepth 2 -name 'ULOG.*' -not -name "ULOG.$(date +%m%d%y)" -size 0 -delete
+  endscript
+}
