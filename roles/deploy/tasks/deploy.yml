@@ -146,6 +146,26 @@
   when: tuxedo_shutdown.rc != 0
   changed_when: true
 
+- name: "Create additional data directories for services : {{ tuxedo_service }}"
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    owner: "{{ tuxedo_service }}"
+    group: "{{ tuxedo_service }}"
+    mode: "{{ item.mode | default('0755') }}"
+    state: directory
+  loop: "{{ data_directories[tuxedo_service] | default([]) | selectattr('type', '==', 'dir') | list }}"
+
+- name: "Create additional symbolic links for services : {{ tuxedo_service }}"
+  ansible.builtin.file:
+    src: "{{ item.src }}"
+    dest: "{{ item.path }}"
+    owner: "{{ item.owner | default(tuxedo_service) }}"
+    group: "{{ item.group | default(tuxedo_service) }}"
+    force: true
+    follow: false
+    state: link
+  loop: "{{ data_directories[tuxedo_service] | default([]) | selectattr('type', '==', 'link') | list }}"
+
 - name: "Deploy and extract application artefact : {{ tuxedo_service }}"
   ansible.builtin.unarchive:
     src: "{{ application_artifact_path }}"

@@ -2,6 +2,9 @@
 
 ais_logs_path: /ais/logs
 
+ais_user: ais
+ais_group: ais
+
 cloudwatch_agent_defaults:
   path: /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl
   config_dir: /opt/aws/amazon-cloudwatch-agent/etc
@@ -9,6 +12,17 @@ cloudwatch_agent_defaults:
   metrics_collection_interval: 60
   metrics_enabled: false
   user: cwagent
+
+data_directories:
+  ais:
+    - path: /export/home
+      type: dir
+    - path: /export/home/ais
+      type: link
+      src: /image/ais
+    - path: /ais
+      type: link
+      src: /image/ais
 
 getent_gid_index: 2
 getent_uid_index: 1
