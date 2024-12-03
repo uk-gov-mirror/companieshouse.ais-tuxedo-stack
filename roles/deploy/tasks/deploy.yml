@@ -149,8 +149,8 @@
 - name: "Create additional data directories for services : {{ tuxedo_service }}"
   ansible.builtin.file:
     path: "{{ item.path }}"
-    owner: "{{ tuxedo_service }}"
-    group: "{{ tuxedo_service }}"
+    owner: "{{ item.owner | tuxedo_service }}"
+    group: "{{ item.group | tuxedo_service }}"
     mode: "{{ item.mode | default('0755') }}"
     state: directory
   loop: "{{ data_directories[tuxedo_service] | default([]) | selectattr('type', '==', 'dir') | list }}"
