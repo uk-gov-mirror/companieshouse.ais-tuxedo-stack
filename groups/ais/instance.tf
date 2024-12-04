@@ -27,6 +27,15 @@ resource "aws_vpc_security_group_ingress_rule" "admin_ingress" {
   ip_protocol       = "tcp"
 }
 
+resource "aws_vpc_security_group_ingress_rule" "ingress_dsr_scanning_ssh" {
+  security_group_id = aws_security_group.common.id
+  description       = "Allow inbound SSH connectivity for DSR scanning systems"
+  cidr_ipv4         = "172.19.12.0/22"
+  from_port         = 22
+  to_port           = 22
+  ip_protocol       = "tcp"
+}
+
 resource "aws_vpc_security_group_ingress_rule" "ingress_chiris_to_informix" {
   for_each = toset(local.chiris_desktop_service_cidrs)
 
