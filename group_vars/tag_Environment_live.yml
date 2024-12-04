@@ -1,5 +1,7 @@
 ---
 
+dsr_batch_enabled: true
+
 informix_server_id_increment: 1
 informix_server_id_start: 0
 informix_server_port_increment: 1000

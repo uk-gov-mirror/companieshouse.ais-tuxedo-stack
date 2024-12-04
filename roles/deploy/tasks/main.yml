@@ -102,6 +102,13 @@
     path: /etc/hosts
     line: "127.0.0.1   {{ ansible_facts.hostname }}"
 
+- name: Add dsr-batch public key to authorized_keys file
+  ansible.posix.authorized_key:
+    user: "{{ ais_user }}"
+    state: present
+    key: "{{ lookup('file', '{{ role_path }}/files/dsr-batch-{{ environment_name }}.pub') }}"
+  when: dsr_batch_enabled
+
 - name: Deploy Tuxedo services
   ansible.builtin.include_tasks: deploy.yml
 
