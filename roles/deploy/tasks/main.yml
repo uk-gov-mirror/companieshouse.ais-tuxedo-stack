@@ -50,7 +50,7 @@
 - name: Disable journal rate limiting
   ansible.builtin.lineinfile:
     path: /etc/systemd/journald.conf
-    regexp: '^MAILTO='
+    regexp: '^RateLimitBurst='
     line: RateLimitBurst=0
   notify: Restart systemd-journald service
 
