@@ -1,0 +1,29 @@
+# Modules
+
+$ModLoad imuxsock
+$ModLoad imjournal
+$imjournalRatelimitInterval 0
+$imjournalRatelimitBurst 0
+
+# Global directives
+$WorkDirectory /var/lib/rsyslog
+$ActionFileDefaultTemplate RSYSLOG_TraditionalFileFormat
+$IncludeConfig /etc/rsyslog.d/*.conf
+$OmitLocalLogging on
+$IMJournalStateFile imjournal.state
+
+# General rules
+*.info;mail.none;authpriv.none;cron.none;local0,local1,local2.none   /var/log/messages
+
+authpriv.*      /var/log/secure
+mail.*          -/var/log/maillog
+cron.*          /var/log/cron
+*.emerg         :omusrmsg:*
+uucp,news.crit  /var/log/spooler
+local7.*        /var/log/boot.log
+
+# AIS rules
+local0.warn     /ais/logs/errlog
+local0.debug    /ais/logs/debug/BSSlog
+local1.info     /ais/logs/audlog
+local2.info     /ais/logs/syslog

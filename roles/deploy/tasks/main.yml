@@ -36,6 +36,29 @@
     tuxedo_logical_machine_id_suffix: "{{ tuxedo_common_suffix + '_SRV' }}"
     tuxedo_local_domain_suffix: "{{ tuxedo_common_suffix + '_LOD' }}"
 
+- name: Create rsyslog configuration
+  ansible.builtin.template:
+    src: rsyslog.conf.j2
+    dest: /etc/rsyslog.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify:
+    - Restart rsyslog service
+    - Restart systemd-journald service
+
+- name: Disable journal rate limiting
+  ansible.builtin.lineinfile:
+    path: /etc/systemd/journald.conf
+    line: RateLimitBurst=0
+  notify: Restart systemd-journald service
+
+- name: Start rpcbind service
+  ansible.builtin.systemd:
+    name: rpcbind
+    state: started
+    enabled: true
+
 - name: Set CloudWatch agent facts for config population
   ansible.builtin.set_fact:
     cloudwatch_agent: "{{ cloudwatch_agent_defaults | combine(cloudwatch_agent_overrides | default({})) }}"
