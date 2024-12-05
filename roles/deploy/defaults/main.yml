@@ -23,6 +23,9 @@ data_directories:
     - path: /ais
       type: link
       src: /image/ais
+    - path: /AIS
+      type: link
+      src: /image/ais
     - path: /image/ais/logs/tuxedo
       type: link
       src: /var/log/tuxedo/ais
