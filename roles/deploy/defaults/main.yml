@@ -26,6 +26,9 @@ data_directories:
     - path: /AIS
       type: link
       src: /image/ais
+    - path: /ais/run.linux/EmulatedDrive
+      type: link
+      src: archdir1/EmulatedDrive
     - path: /image/ais/logs/tuxedo
       type: link
       src: /var/log/tuxedo/ais
