@@ -59,7 +59,9 @@ variable "instance_type" {
 
 variable "lvm_block_devices" {
   type = list(object({
+    aws_volume_iops                 = number
     aws_volume_size_gb              = string
+    aws_volume_throughput           = number
     aws_volume_type                 = string
     filesystem_resize_tool          = string
     lvm_logical_volume_device_node  = string
