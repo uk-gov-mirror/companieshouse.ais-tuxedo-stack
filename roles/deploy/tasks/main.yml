@@ -110,6 +110,7 @@
   community.general.sefcontext:
     target: "{{ item.pattern }}"
     setype: "{{ item.type }}"
+    ftype: "{{ item.ftype | default('a') }}"
     state: present
   loop:
     - pattern: "/opt/aws/amazon-cloudwatch-agent/logs(/.*)?"
@@ -118,6 +119,7 @@
       type: var_log_t
     - pattern: "/ais"
       type: var_log_t
+      ftype: l
   register: selinux_contexts
 
 - name: Apply SELinux security contexts recursively # noqa no-handler
