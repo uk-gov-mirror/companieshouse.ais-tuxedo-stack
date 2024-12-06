@@ -120,18 +120,20 @@
       type: var_log_t
   register: selinux_contexts
 
-- name: Apply SELinux security contexts recursively
+- name: Apply SELinux security contexts recursively # noqa no-handler
   ansible.builtin.command: "restorecon -rv {{ item }}"
   loop:
     - /opt/aws/amazon-cloudwatch-agent/logs
     - /image/ais/logs
-  changed_when: selinux_contexts.changed
+  when: selinux_contexts.changed
+  changed_when: true
 
-- name: Apply SELinux security contexts
+- name: Apply SELinux security contexts # noqa no-handler
   ansible.builtin.command: "restorecon -v {{ item }}"
   loop:
     - /ais
-  changed_when: selinux_contexts.changed
+  when: selinux_contexts.changed
+  changed_when: true
 
 - name: Install additional tooling
   ansible.builtin.import_tasks: tools.yml
