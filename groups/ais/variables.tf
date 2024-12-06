@@ -60,6 +60,7 @@ variable "instance_type" {
 variable "lvm_block_devices" {
   type = list(object({
     aws_volume_size_gb              = string
+    aws_volume_type                 = string
     filesystem_resize_tool          = string
     lvm_logical_volume_device_node  = string
     lvm_physical_volume_device_node = string
@@ -77,6 +78,24 @@ variable "root_volume_size" {
   type        = number
   description = "The size of the root volume in gibibytes (GiB)."
   default     = 20
+}
+
+variable "root_volume_type" {
+  type        = string
+  description = "The type of the root volume."
+  default     = "gp3"
+}
+
+variable "root_volume_throughput" {
+  type        = number
+  description = "The throughput of the root volume in MiB/s."
+  default     = 125
+}
+
+variable "root_volume_iops" {
+  type        = number
+  description = "The amount of provisioned IOPS; valid only for root_volume_type of io1, io2 or gp3."
+  default     = 3000
 }
 
 variable "service" {
