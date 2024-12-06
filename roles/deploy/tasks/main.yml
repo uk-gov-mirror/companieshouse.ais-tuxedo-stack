@@ -106,16 +106,34 @@
 - name: Configure cron jobs
   ansible.builtin.import_tasks: cron.yml
 
-- name: Allow logrotate to modify CloudWatch logs
+- name: Configure SELinux security contexts
   community.general.sefcontext:
-    target: '/opt/aws/amazon-cloudwatch-agent/logs(/.*)?'
-    setype: var_log_t
+    target: "{{ item.pattern }}"
+    setype: "{{ item.type }}"
     state: present
+  loop:
+    - pattern: "/opt/aws/amazon-cloudwatch-agent/logs(/.*)?"
+      type: var_log_t
+    - pattern: "/image/ais/logs(/.*)?"
+      type: var_log_t
+    - pattern: "/ais"
+      type: var_log_t
+  register: selinux_contexts
 
-- name: Update SELinux security context
-  ansible.builtin.command: "restorecon -irv /opt/aws/amazon-cloudwatch-agent/logs"
-  register: cloudwatch_logs_selinux_context
-  changed_when: cloudwatch_logs_selinux_context.stdout != ""
+- name: Apply SELinux security contexts recursively # noqa no-handler
+  ansible.builtin.command: "restorecon -rv {{ item }}"
+  loop:
+    - /opt/aws/amazon-cloudwatch-agent/logs
+    - /image/ais/logs
+  when: selinux_contexts.changed
+  changed_when: true
+
+- name: Apply SELinux security contexts # noqa no-handler
+  ansible.builtin.command: "restorecon -v {{ item }}"
+  loop:
+    - /ais
+  when: selinux_contexts.changed
+  changed_when: true
 
 - name: Install additional tooling
   ansible.builtin.import_tasks: tools.yml
