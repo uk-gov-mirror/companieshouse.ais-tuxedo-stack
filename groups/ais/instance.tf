@@ -94,7 +94,9 @@ resource "aws_instance" "ais" {
   vpc_security_group_ids = [aws_security_group.common.id]
 
   root_block_device {
+    throughput  = var.root_volume_throughput
     volume_size = var.root_volume_size != 0 ? var.root_volume_size : local.ami_root_block_device.ebs.volume_size
+    volume_type = var.root_volume_type
   }
 
   dynamic "ebs_block_device" {
@@ -103,10 +105,11 @@ resource "aws_instance" "ais" {
     content {
       device_name = block_device.value.device_name
       encrypted   = block_device.value.ebs.encrypted
-      iops        = block_device.value.ebs.iops
+      iops        = var.lvm_block_devices[index(var.lvm_block_devices[*].lvm_physical_volume_device_node, block_device.value.device_name)].aws_volume_iops
       snapshot_id = block_device.value.ebs.snapshot_id
+      throughput  = var.lvm_block_devices[index(var.lvm_block_devices[*].lvm_physical_volume_device_node, block_device.value.device_name)].aws_volume_throughput
       volume_size = var.lvm_block_devices[index(var.lvm_block_devices[*].lvm_physical_volume_device_node, block_device.value.device_name)].aws_volume_size_gb
-      volume_type = block_device.value.ebs.volume_type
+      volume_type = var.lvm_block_devices[index(var.lvm_block_devices[*].lvm_physical_volume_device_node, block_device.value.device_name)].aws_volume_type
     }
   }
 
