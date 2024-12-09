@@ -274,7 +274,7 @@
 - name: "Start Tuxedo services : {{ tuxedo_service }}"
   become: true
   become_user: "{{ tuxedo_service }}"
-  ansible.builtin.shell: "source {{ tuxedo_env_file_path }} && tmboot -y"
+  ansible.builtin.shell: "source {{ tuxedo_env_file_path }} && source {{ ais_profile_path }} && tmboot -y"
   args:
     executable: /bin/bash
   changed_when: true
@@ -298,7 +298,7 @@
 - name: "Start file retrieval client service : {{ tuxedo_service }}"
   become: true
   become_user: "{{ tuxedo_service }}"
-  ansible.builtin.shell: "source /ais/ais.profile && /ais/tools/proman/boot_file_ret"
+  ansible.builtin.shell: "source {{ ais_profile_path }} && /ais/tools/proman/boot_file_ret"
   args:
     executable: /bin/bash
   changed_when: true
@@ -306,7 +306,7 @@
 - name: "Start message transfer service : {{ tuxedo_service }}"
   become: true
   become_user: "{{ tuxedo_service }}"
-  ansible.builtin.shell: "source /ais/ais.profile && /ais/tools/proman/boot_msg_trans"
+  ansible.builtin.shell: "source {{ ais_profile_path }} && /ais/tools/proman/boot_msg_trans"
   args:
     executable: /bin/bash
   changed_when: true
