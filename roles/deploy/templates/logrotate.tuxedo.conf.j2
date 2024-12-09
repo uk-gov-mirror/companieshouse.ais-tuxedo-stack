@@ -26,3 +26,13 @@
     /bin/find {{ tuxedo_logs_path }} -maxdepth 2 -name 'ULOG.*' -not -name "ULOG.$(date +%m%d%y)" -size 0 -delete
   endscript
 }
+
+/ais/logs/debug/BSSlog /ais/logs/audlog /ais/logs/errlog /ais/logs/syslog /ais/logs/ExportLog.Delete /ais/logs/ExportLog.Unload {
+  daily
+  copytruncate
+  compress
+  notifempty
+  olddir /ais/logs/archive
+  createolddir 0755 root root
+  rotate 365
+}
