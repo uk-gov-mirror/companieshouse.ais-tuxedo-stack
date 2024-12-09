@@ -1,6 +1,7 @@
 ---
 
 ais_logs_path: /ais/logs
+ais_profile_path: /ais/ais.profile
 
 ais_user: ais
 ais_group: ais
