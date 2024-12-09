@@ -7,6 +7,7 @@
       - ftp
       - ksh
       - mailx
+      - setools-console
 
 - name: Disable mailx inbuilt SMTP relay
   ansible.builtin.replace:
