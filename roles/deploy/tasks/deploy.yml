@@ -290,7 +290,7 @@
 - name: "Start document synchronisation servers, cache servers, archive servers, and database servers : {{ tuxedo_service }}" # noqa ignore-errors
   become: true
   become_user: "{{ tuxedo_service }}"
-  ansible.builtin.shell: "source {{ tuxedo_env_file_path }} && {{ server_operation_script_path }} start"
+  ansible.builtin.shell: "source {{ tuxedo_env_file_path }} && source {{ ais_profile_path }} && {{ server_operation_script_path }} start"
   args:
     executable: /bin/bash
   changed_when: true
