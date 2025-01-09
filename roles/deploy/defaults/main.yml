@@ -16,6 +16,8 @@ cloudwatch_agent_defaults:
 
 data_directories:
   ais:
+    - path: /image/ais
+      type: dir
     - path: /export/home
       type: dir
     - path: /export/home/ais
