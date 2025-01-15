@@ -35,6 +35,9 @@ data_directories:
     - path: /image/ais/logs/tuxedo
       type: link
       src: /var/log/tuxedo/ais
+    - path: /image/scud
+      type: link
+      src: /data1/image/scud
 
 getent_gid_index: 2
 getent_uid_index: 1
