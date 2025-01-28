@@ -6,7 +6,7 @@
   maxsize 1G
   missingok
   notifempty
-  olddir old
+  olddir {{ tuxedo_logs_path }}/old
   rotate 20
   createolddir 0755 root root
 }
@@ -18,7 +18,7 @@
   maxsize 1800M
   missingok
   notifempty
-  olddir old
+  olddir {{ tuxedo_logs_path }}/old
   rotate 20
   createolddir 0755 root root
   lastaction
@@ -27,9 +27,22 @@
   endscript
 }
 
+{{ ais_logs_path }}/debug/*import_output {
+  daily
+  copytruncate
+  compress
+  notifempty
+  olddir {{ ais_logs_path }}/archive
+  createolddir 0755 root root
+  rotate 31
+  lastaction
+    /bin/find {{ ais_logs_path }}/archive -name '*import_output*.gz' -mtime +31 -exec rm -f {} \;
+    /bin/find {{ ais_logs_path }}/debug -maxdepth 1 -name '*import_output' -mtime +1 -size 0 -delete
+  endscript
+}
+
 {{ ais_logs_path }}/audlog
 {{ ais_logs_path }}/audlog.report
-{{ ais_logs_path }}/debug/*import_output
 {{ ais_logs_path }}/debug/BSSlog
 {{ ais_logs_path }}/errlog
 {{ ais_logs_path }}/ExportLog.*
@@ -47,5 +60,5 @@
   notifempty
   olddir /ais/logs/archive
   createolddir 0755 root root
-  rotate 365
+  rotate 31
 }
