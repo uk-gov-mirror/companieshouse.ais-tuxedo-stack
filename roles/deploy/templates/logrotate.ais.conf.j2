@@ -21,7 +21,7 @@
   rotate 31
 
   lastaction
-    /bin/find {{ ais_logs_path }}/archive -name '*import_output' -mtime +31 -exec rm -f {} \;
+    /bin/find {{ ais_logs_path }}/archive -name '*import_output*.gz' -mtime +31 -exec rm -f {} \;
     /bin/find {{ ais_logs_path }}/debug -maxdepth 1 -name '*import_output' -size 0 -delete
   endscript
 }
