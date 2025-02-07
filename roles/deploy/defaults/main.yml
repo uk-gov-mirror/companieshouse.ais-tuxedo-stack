@@ -24,6 +24,9 @@ data_directories:
     - path: /export/home/ais
       type: link
       src: /image/ais
+    - path: /export/home/bulk
+      type: link
+      src: /image/ais/bulk
     - path: /ais
       type: link
       src: /image/ais
@@ -43,9 +46,6 @@ data_directories:
       type: dir
       owner: root
       group: root
-    - path: /export/home
-      type: link
-      src: /home
 
 getent_gid_index: 2
 getent_uid_index: 1
