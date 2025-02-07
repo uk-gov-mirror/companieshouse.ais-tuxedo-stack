@@ -39,6 +39,13 @@ data_directories:
     - path: /image/scud
       type: link
       src: /data1/image/scud
+    - path: /export
+      type: dir
+      owner: root
+      group: root
+    - path: /export/home
+      type: link
+      src: /home
 
 getent_gid_index: 2
 getent_uid_index: 1
