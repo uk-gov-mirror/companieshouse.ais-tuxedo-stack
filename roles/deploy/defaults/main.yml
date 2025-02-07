@@ -27,6 +27,9 @@ data_directories:
     - path: /export/home/bulk
       type: link
       src: /image/ais/bulk
+    - path: /export/home/new-bulk
+      type: link
+      src: /home/new-bulk
     - path: /ais
       type: link
       src: /image/ais
