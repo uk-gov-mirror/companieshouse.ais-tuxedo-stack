@@ -95,13 +95,18 @@
     mode: '0755'
     state: directory
 
-- name: Create shared log rotation configuration for Tuxedo services
+- name: Create shared log rotation configuration for Tuxedo and AIS services
   ansible.builtin.template:
-    src: templates/logrotate.tuxedo.conf.j2
-    dest: "{{ tuxedo_log_rotation_config_path }}"
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
     owner: root
     group: root
     mode: '0644'
+  loop:
+    - src: templates/logrotate.tuxedo.conf.j2
+      dest: "{{ tuxedo_log_rotation_config_path }}"
+    - src: templates/logrotate.ais.conf.j2
+      dest: "{{ ais_log_rotation_config_path }}"
 
 - name: Configure cron jobs
   ansible.builtin.import_tasks: cron.yml

@@ -26,26 +26,3 @@
     /bin/find {{ tuxedo_logs_path }} -maxdepth 2 -name 'ULOG.*' -not -name "ULOG.$(date +%m%d%y)" -size 0 -delete
   endscript
 }
-
-{{ ais_logs_path }}/audlog
-{{ ais_logs_path }}/audlog.report
-{{ ais_logs_path }}/debug/*import_output
-{{ ais_logs_path }}/debug/BSSlog
-{{ ais_logs_path }}/errlog
-{{ ais_logs_path }}/ExportLog.*
-{{ ais_logs_path }}/output_debug_*
-{{ ais_logs_path }}/route400/*.log
-{{ ais_logs_path }}/syslog
-{{ ais_logs_path }}/testing/doc_retrieval
-{{ ais_logs_path }}/testing/file_ret_client
-{{ ais_logs_path }}/testing/notify
-{{ ais_logs_path }}/trace_debug_message
-{
-  daily
-  copytruncate
-  compress
-  notifempty
-  olddir /ais/logs/archive
-  createolddir 0755 root root
-  rotate 365
-}

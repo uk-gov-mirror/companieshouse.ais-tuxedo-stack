@@ -1,5 +1,6 @@
 ---
 
+ais_log_rotation_config_path: /etc/logrotate.ais.conf
 ais_logs_path: /ais/logs
 ais_profile_path: /ais/ais.profile
 
