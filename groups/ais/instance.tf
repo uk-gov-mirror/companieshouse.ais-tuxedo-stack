@@ -47,7 +47,7 @@ resource "aws_vpc_security_group_ingress_rule" "ingress_chiris_to_informix" {
   ip_protocol       = "tcp"
 }
 
-resource "aws_vpc_security_group_ingress_rule" "ingress_chiris_to_informix" {
+resource "aws_vpc_security_group_ingress_rule" "ingress_chiris_to_sftp" {
   for_each = toset(local.chiris_desktop_service_cidrs)
 
   security_group_id = aws_security_group.common.id
