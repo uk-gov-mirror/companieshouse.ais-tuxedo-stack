@@ -47,6 +47,17 @@ resource "aws_vpc_security_group_ingress_rule" "ingress_chiris_to_informix" {
   ip_protocol       = "tcp"
 }
 
+resource "aws_vpc_security_group_ingress_rule" "ingress_chiris_to_sftp" {
+  for_each = toset(local.chiris_desktop_service_cidrs)
+
+  security_group_id = aws_security_group.common.id
+  description       = "Allow inbound connectivity from CHIRIS desktop service to SFTP/SSH"
+  cidr_ipv4         = each.value
+  from_port         = 22
+  to_port           = 22
+  ip_protocol       = "tcp"
+}
+
 resource "aws_vpc_security_group_ingress_rule" "ingress_ois_to_ais_services" {
   for_each = {
     for rule in local.ais_security_group_rules : "${rule.service}-${rule.port}-${rule.cidr_ipv4}" => rule
