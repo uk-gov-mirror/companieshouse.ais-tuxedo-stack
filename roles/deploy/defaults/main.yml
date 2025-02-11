@@ -45,6 +45,9 @@ data_directories:
     - path: /image/scud
       type: link
       src: /data1/image/scud
+    - path: /apps
+      type: link
+      src: /data1/apps
 
 getent_gid_index: 2
 getent_uid_index: 1
