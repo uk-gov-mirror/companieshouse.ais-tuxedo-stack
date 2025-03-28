@@ -115,3 +115,5 @@ tuxedo_log_files:
       cloudwatch_log_group_name: ais-tuxedo-ais-syslog
     - file_pattern: "{{ tuxedo_logs_path }}/ULOG*"
       cloudwatch_log_group_name: ais-tuxedo-ais-ulog
+
+ura_key_vault_path: "{{ vault_base_path }}/ura"
