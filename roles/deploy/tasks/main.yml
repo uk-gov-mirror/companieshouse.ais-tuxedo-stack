@@ -37,9 +37,9 @@
   ansible.builtin.template:
     src: templates/uraki.j2
     dest: /etc/uraki
-    owner: root
-    group: root
-    mode: '0644'
+    owner: "{{ ais_user }}"
+    group: "{{ ais_group }}"
+    mode: '0440'
 
 # The hostname is assumed to be in the format: ais-tuxedo-<environment>-<instance-index>
 - name: Set common Tuxedo fact for domain suffix
