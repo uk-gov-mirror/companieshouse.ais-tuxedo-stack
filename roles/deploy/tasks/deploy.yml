@@ -278,6 +278,7 @@
   args:
     executable: /bin/bash
   changed_when: true
+  no_log: true
 
 - name: "Stop Tuxedo domain group : {{ tuxedo_service }}" # noqa ignore-errors
   become: true
