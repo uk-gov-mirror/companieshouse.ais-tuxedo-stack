@@ -126,6 +126,7 @@ resource "aws_instance" "ais" {
 
   tags = merge(local.common_tags, {
     Name = "${var.service_subtype}-${var.service}-${var.environment}-${count.index + 1}"
+    ServiceTeam = "CSI"
   })
   volume_tags = local.common_tags
 }
