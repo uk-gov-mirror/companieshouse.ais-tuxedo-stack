@@ -17,3 +17,5 @@ lvm_block_devices = [{
   lvm_logical_volume_device_node: "/dev/data/ais",
   lvm_physical_volume_device_node: "/dev/xvdb"
 }]
+
+default_log_retention_in_days = 90
